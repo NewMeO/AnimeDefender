@@ -212,6 +212,7 @@ do -- Nexus
 
         while true do
             for Index, Connection in pairs(self.Connections) do
+				warn(Connection)
                 Connection:Disconnect()
             end
         
@@ -235,15 +236,6 @@ do -- Nexus
 
             self.Socket = Socket
             self.IsConnected = true
-
-            Socket.OnMessage:Connect(function(Message)
-                self.MessageReceived:Fire(Message)
-            end)
-
-            Socket.OnClose:Connect(function()
-                self.IsConnected = false
-                self.Disconnected:Fire()
-            end)
 
             self.Connected:Fire()
 
@@ -282,7 +274,6 @@ do -- Nexus
     end
 
     Nexus.MessageReceived:Connect(function(Message)
-        print(Message)
         local S = Message:find(' ')
 
         if S then
