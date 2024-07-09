@@ -43,7 +43,9 @@ local UGS = UserSettings():GetService'UserGameSettings'
 local OldVolume = UGS.MasterVolume
 
 LocalPlayer.OnTeleport:Connect(function(State)
-    if State == Enum.TeleportState.Started and Nexus.IsConnected then
+    print("Teleport: ", State)
+    print("Status: ", Nexus.IsConnected)
+    if (State == Enum.TeleportState.Started or State == Enum.TeleportState.RequestedFromServer) and Nexus.IsConnected then
         Nexus:Stop() -- Apparently doesn't disconnect websockets on teleport so this has to be here
     end
 end)
@@ -212,7 +214,6 @@ do -- Nexus
 
         while true do
             for Index, Connection in pairs(self.Connections) do
-				warn(Connection)
                 Connection:Disconnect()
             end
         
@@ -236,6 +237,15 @@ do -- Nexus
 
             self.Socket = Socket
             self.IsConnected = true
+
+            table.insert(self.Connections, Socket.OnMessage:Connect(function(Message)
+                self.MessageReceived:Fire(Message)
+            end))
+
+            table.insert(self.Connections, Socket.OnClose:Connect(function()
+                self.IsConnected = false
+                self.Disconnected:Fire()
+            end))
 
             self.Connected:Fire()
 
